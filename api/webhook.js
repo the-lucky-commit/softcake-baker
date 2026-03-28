@@ -29,13 +29,20 @@ export default async function handler(req, res) {
       res.status(200).send('EVENT_RECEIVED');
 
       for (const entry of body.entry) {
-        // รองรับทั้งกรณีปกติ (messaging) และกรณี Facebook Inbox แย่งรับข้อความ (standby)
-        const events = entry.messaging || entry.standby || [];
+        // ใช้เฉพาะ messaging events เท่านั้น (ข้าม standby เพื่อป้องกันข้อความซ้ำ)
+        const events = entry.messaging || [];
+        
+        // ข้าม standby events เพราะจะทำให้ข้อความตอบกลับซ้ำซ้อน
+        if (!entry.messaging) {
+          console.log('Skipping non-messaging entry (standby/other)');
+          continue;
+        }
         
         for (const webhook_event of events) {
           if (!webhook_event.sender || !webhook_event.sender.id) continue;
           
           const sender_psid = webhook_event.sender.id;
+          console.log('Processing event from:', sender_psid, 'type:', webhook_event.postback ? 'postback:' + webhook_event.postback.payload : webhook_event.message ? 'message:' + (webhook_event.message.text || '') : 'unknown');
           
           if (webhook_event.postback) {
             await handlePostback(sender_psid, webhook_event.postback, PAGE_ACCESS_TOKEN, LANDING_PAGE_URL);
@@ -104,9 +111,16 @@ async function handlePostback(sender_psid, received_postback, access_token, appU
   } else if (payload.startsWith('DELIVERY_')) {
     // Step 4: ส่งข้อความให้คัดลอก + ปุ่มพาไป WhatsApp
     await triggerWhatsAppFlow(sender_psid, payload, access_token);
+  } else if (payload === 'INTERESTED_CHEESECAKE') {
+    await callSendAPI(sender_psid, { "text": "🧀 ชีสเค้กกำลังเป็นเทรนด์สุดฮิต!\n\nสนใจเปิดร้านชีสเค้ก หรืออยากทราบรายละเอียดเพิ่มเติม กรุณาติดต่อแอดมินได้เลยครับ 🙏" }, access_token);
+  } else if (payload === 'INTERESTED_OTHERS') {
+    await callSendAPI(sender_psid, { "text": "🍰 ขนมอื่นๆ ภายในร้าน Apple Bake\n\nกรุณาติดต่อแอดมินเพื่อสอบถามรายละเอียดเพิ่มเติมครับ 🙏" }, access_token);
+  } else if (payload === 'JOB_APPLICATION') {
+    await callSendAPI(sender_psid, { "text": "📋 รับสมัครพนักงาน Apple Bake\n\nสนใจสมัครงาน กรุณาติดต่อแอดมินได้เลยครับ 🙏" }, access_token);
   } else {
-    // อื่นๆ ที่ลูกค้าอาจจะกดจากการ์ด (เช่น ชีสเค้ก, รับสมัครงาน)
-    await callSendAPI(sender_psid, { "text": "ฟังก์ชั่นนี้อยู่ระหว่างการปรับปรุงครับ ขอบคุณที่ให้ความสนใจ 🙏" }, access_token);
+    // อื่นๆ
+    console.log('Unknown postback payload:', payload);
+    await callSendAPI(sender_psid, { "text": "ขอบคุณที่ให้ความสนใจครับ กรุณาติดต่อแอดมินสำหรับรายละเอียดเพิ่มเติม 🙏" }, access_token);
   }
 }
 
