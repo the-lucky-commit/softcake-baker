@@ -210,37 +210,55 @@ ul { list-style: none; }
 }
 .flavour-card {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 12px;
-  padding: 14px 18px;
+  padding: 16px;
   background: var(--color-bg-card);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   transition: var(--transition);
+  text-align: center;
+  overflow: hidden;
 }
 .flavour-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
   border-color: var(--color-accent);
+}
+.flavour-img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-alt);
+}
+.flavour-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  justify-content: center;
 }
 .flavour-num {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: var(--color-primary);
   color: var(--color-white);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   flex-shrink: 0;
 }
 .flavour-name {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-text);
 }
+
 .flavour-card.extra {
   background: linear-gradient(135deg, var(--color-bg-alt), var(--color-bg-card));
   border-color: var(--color-accent-light);
