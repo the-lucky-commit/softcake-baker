@@ -1,9 +1,9 @@
 export default async function handler(req, res) {
   const VERIFY_TOKEN = process.env.VERIFY_TOKEN || 'softcake_baker_secret_token_2026';
   const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
-  const LANDING_PAGE_URL = 'https://softcake-baker.vercel.app'; // เปลี่ยนเป็นโดเมนจริงเมื่อนำขึ้น Vercel
+  const APP_URL = 'https://softcake-baker.vercel.app';
 
-  // Handle Meta Webhook Verification (GET)
+  // ─── Webhook Verification (GET) ───
   if (req.method === 'GET') {
     const mode = req.query['hub.mode'];
     const token = req.query['hub.verify_token'];
@@ -13,41 +13,37 @@ export default async function handler(req, res) {
       if (mode === 'subscribe' && token === VERIFY_TOKEN) {
         console.log('WEBHOOK_VERIFIED');
         return res.status(200).send(challenge);
-      } else {
-        return res.status(403).send('Forbidden');
       }
+      return res.status(403).send('Forbidden');
     }
     return res.status(400).send('Bad Request');
   }
 
-  // Handle Incoming Messages (POST)
+  // ─── Incoming Events (POST) ───
   if (req.method === 'POST') {
     const body = req.body;
 
     if (body.object === 'page') {
-      // ส่ง Response กลับทันทีเพื่อยืนยันว่าได้รับ Event แล้ว (รักษากฎของ Webhook Meta)
       res.status(200).send('EVENT_RECEIVED');
 
       for (const entry of body.entry) {
-        // ใช้เฉพาะ messaging events เท่านั้น (ข้าม standby เพื่อป้องกันข้อความซ้ำ)
-        const events = entry.messaging || [];
-        
-        // ข้าม standby events เพราะจะทำให้ข้อความตอบกลับซ้ำซ้อน
         if (!entry.messaging) {
-          console.log('Skipping non-messaging entry (standby/other)');
+          console.log('Skipping non-messaging entry');
           continue;
         }
-        
-        for (const webhook_event of events) {
-          if (!webhook_event.sender || !webhook_event.sender.id) continue;
-          
-          const sender_psid = webhook_event.sender.id;
-          console.log('Processing event from:', sender_psid, 'type:', webhook_event.postback ? 'postback:' + webhook_event.postback.payload : webhook_event.message ? 'message:' + (webhook_event.message.text || '') : 'unknown');
-          
-          if (webhook_event.postback) {
-            await handlePostback(sender_psid, webhook_event.postback, PAGE_ACCESS_TOKEN, LANDING_PAGE_URL);
-          } else if (webhook_event.message && !webhook_event.message.is_echo) {
-            await handleMessage(sender_psid, webhook_event.message, PAGE_ACCESS_TOKEN, LANDING_PAGE_URL);
+
+        for (const event of entry.messaging) {
+          if (!event.sender || !event.sender.id) continue;
+          const psid = event.sender.id;
+
+          try {
+            if (event.postback) {
+              await handlePostback(psid, event.postback, PAGE_ACCESS_TOKEN, APP_URL);
+            } else if (event.message && !event.message.is_echo) {
+              await handleMessage(psid, event.message, PAGE_ACCESS_TOKEN, APP_URL);
+            }
+          } catch (err) {
+            console.error('Error handling event:', err);
           }
         }
       }
@@ -59,114 +55,123 @@ export default async function handler(req, res) {
   return res.status(405).send('Method Not Allowed');
 }
 
-// -------------------------------------------------------------
-// Core Messaging Functions
-// -------------------------------------------------------------
+// ═══════════════════════════════════════════════════════════════
+//  CORE HANDLERS
+// ═══════════════════════════════════════════════════════════════
 
-async function handleMessage(sender_psid, received_message, access_token, appUrl) {
-  // รองรับกรณีลูกค้าพิมพ์ข้อความตรงๆ
-  const text = received_message.text ? received_message.text.toLowerCase() : '';
-  
-  if (text.includes('เมนูหลัก') || text.includes('เมนู') || text.includes('menu')) {
-    await callSendAPI(sender_psid, getMainMenuCarousel(appUrl), access_token);
-  } else if (text.includes('สนใจเค้กหน้านิ่ม') || text.includes('สนใจเค้ก')) {
-    await triggerSoftcakeFlowStep1(sender_psid, access_token, appUrl);
-  } else if (text.includes('สนใจ')) {
-    await callSendAPI(sender_psid, getMainMenuCarousel(appUrl), access_token);
+async function handleMessage(psid, msg, token, appUrl) {
+  const text = msg.text ? msg.text.toLowerCase() : '';
+
+  if (
+    text.includes('interested') ||
+    text.includes('soft cake') ||
+    text.includes('สนใจ') ||
+    text.includes('เค้ก') ||
+    text.includes('cake')
+  ) {
+    await triggerStep1(psid, token, appUrl);
+  } else if (text.includes('detail') || text.includes('flavour') || text.includes('flavor') || text.includes('รายละเอียด')) {
+    await triggerStep2(psid, token);
+  } else if (text.includes('order') || text.includes('สั่ง') || text.includes('buy')) {
+    await triggerStep3(psid, token, appUrl);
+  } else if (text.includes('contact') || text.includes('admin') || text.includes('ติดต่อ')) {
+    await sendText(psid, 'Please wait, our admin will reply to you shortly 🙏', token);
   } else {
-    // ทักทายปกติ
-    const genericResponse = {
-      "text": "สวัสดีครับ 🙏 ร้าน Apple Bake ยินดีต้อนรับ\nกรุณากดปุ่มเพื่อเลือกดูรายการสินค้าครับ👇",
-      "quick_replies": [
-        {
-          "content_type": "text",
-          "title": "เมนูหลัก",
-          "payload": "MAIN_MENU"
-        }
-      ]
-    };
-    await callSendAPI(sender_psid, genericResponse, access_token);
+    // Default welcome
+    await sendWelcome(psid, token);
   }
 }
 
-async function handlePostback(sender_psid, received_postback, access_token, appUrl) {
-  const payload = received_postback.payload;
+async function handlePostback(psid, postback, token, appUrl) {
+  const payload = postback.payload;
+  console.log('Postback:', payload);
 
-  if (payload === 'MAIN_MENU') {
-    // ลูกค้ากดเมนูหลักจาก Persistent Menu หรือ Ice Breaker
-    await callSendAPI(sender_psid, getMainMenuCarousel(appUrl), access_token);
-  } else if (payload === 'CONTACT_ADMIN') {
-    await callSendAPI(sender_psid, { "text": "โปรดรอสักครู่ ทางแอดมินของเรากำลังจะมาตอบคำถามให้โดยเร็วที่สุดครับ 🙏🏻" }, access_token);
-  } else if (payload === 'INTERESTED_SOFTCAKE') {
-    // Step 1: ส่ง Pro 50 ท่านแรก
-    await triggerSoftcakeFlowStep1(sender_psid, access_token, appUrl);
-  } else if (payload === 'SOFTCAKE_DETAILS') {
-    // Step 2: รายละเอียดหน้าเค้ก เงื่อนไข และปุ่มสั่งซื้อ
-    await triggerSoftcakeFlowStep2(sender_psid, access_token);
-  } else if (payload === 'ORDER_MENU') {
-    // Step 3: การ์ดเลือกสถานที่ส่ง
-    const responseText = { "text": "❤️ ราคาพิเศษ! Mini soft cake 1 กล่อง (42 ถ้วย) ราคา 2.9 ริง/ถ้วย\nหากสั่ง 10 กล่องขึ้นไป รับราคาพิเศษ 1.9 ริง/ถ้วย เท่านั้น! \n\n🚚 กรุณาเลือกลักษณะการรับสินค้าด้านล่างครับ👇" };
-    await callSendAPI(sender_psid, responseText, access_token);
-    await callSendAPI(sender_psid, getDeliveryOptionsCarousel(appUrl), access_token);
-  } else if (payload.startsWith('DELIVERY_')) {
-    // Step 4: ส่งข้อความให้คัดลอก + ปุ่มพาไป WhatsApp
-    await triggerWhatsAppFlow(sender_psid, payload, access_token);
-  } else if (payload === 'INTERESTED_CHEESECAKE') {
-    await callSendAPI(sender_psid, { "text": "🧀 ชีสเค้กกำลังเป็นเทรนด์สุดฮิต!\n\nสนใจเปิดร้านชีสเค้ก หรืออยากทราบรายละเอียดเพิ่มเติม กรุณาติดต่อแอดมินได้เลยครับ 🙏" }, access_token);
-  } else if (payload === 'INTERESTED_OTHERS') {
-    await callSendAPI(sender_psid, { "text": "🍰 ขนมอื่นๆ ภายในร้าน Apple Bake\n\nกรุณาติดต่อแอดมินเพื่อสอบถามรายละเอียดเพิ่มเติมครับ 🙏" }, access_token);
-  } else if (payload === 'JOB_APPLICATION') {
-    await callSendAPI(sender_psid, { "text": "📋 รับสมัครพนักงาน Apple Bake\n\nสนใจสมัครงาน กรุณาติดต่อแอดมินได้เลยครับ 🙏" }, access_token);
-  } else {
-    // อื่นๆ
-    console.log('Unknown postback payload:', payload);
-    await callSendAPI(sender_psid, { "text": "ขอบคุณที่ให้ความสนใจครับ กรุณาติดต่อแอดมินสำหรับรายละเอียดเพิ่มเติม 🙏" }, access_token);
+  switch (payload) {
+    case 'MAIN_MENU':
+    case 'GET_STARTED':
+      await sendWelcome(psid, token);
+      break;
+
+    case 'INTERESTED_SOFTCAKE':
+      await triggerStep1(psid, token, appUrl);
+      break;
+
+    case 'SOFTCAKE_DETAILS':
+      await triggerStep2(psid, token);
+      break;
+
+    case 'ORDER_MENU':
+      await triggerStep3(psid, token, appUrl);
+      break;
+
+    case 'CONTACT_ADMIN':
+      await sendText(psid, 'Please wait, our admin will reply to you shortly 🙏', token);
+      break;
+
+    case 'DELIVERY_PICKUP':
+    case 'DELIVERY_KL':
+    case 'DELIVERY_OTHER':
+      await triggerWhatsAppFlow(psid, payload, token);
+      break;
+
+    default:
+      console.log('Unknown postback:', payload);
+      await sendText(psid, 'Thank you for your interest! Please contact our admin for more details 🙏', token);
   }
 }
 
-async function callSendAPI(sender_psid, response, access_token) {
-  if (!access_token) return;
+// ═══════════════════════════════════════════════════════════════
+//  WELCOME
+// ═══════════════════════════════════════════════════════════════
 
-  const requestBody = {
-    "recipient": { "id": sender_psid },
-    "message": response
+async function sendWelcome(psid, token) {
+  const welcome = {
+    "text": "Assalamualaikum & Hi! 👋\nWelcome to Apple Bake 🍎🍰\n\nWe craft premium handmade Mini Soft Cakes\nwith 24 unique flavours!\n\n🇲🇾 Delivery to ALL states across Malaysia\n📦 Pre-order welcome!\n\n🔥 Tap the button below to see our promo!",
+    "quick_replies": [
+      {
+        "content_type": "text",
+        "title": "🍰 I'm Interested!",
+        "payload": "INTERESTED_SOFTCAKE"
+      },
+      {
+        "content_type": "text",
+        "title": "📞 Contact Admin",
+        "payload": "CONTACT_ADMIN"
+      }
+    ]
   };
-
-  try {
-    await fetch(`https://graph.facebook.com/v19.0/me/messages?access_token=${access_token}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody)
-    });
-  } catch (err) {
-    console.error('Error calling Send API:', err);
-  }
+  await callSendAPI(psid, welcome, token);
 }
 
-// -------------------------------------------------------------
-// Flow Specific Logic
-// -------------------------------------------------------------
+// ═══════════════════════════════════════════════════════════════
+//  STEP 1 — Promotion + Hero Image
+// ═══════════════════════════════════════════════════════════════
 
-async function triggerSoftcakeFlowStep1(sender_psid, access_token, appUrl) {
-  // Step 1: Promotion + Picture 
-  const textMsg = { "text": "โปรสุด Hot 50 ท่านแรก 🔥\nเค้กถ้วยละ 1.9 ริง \n\nสามารถส่งได้ทุกพื้นที่ ทั่วมาเลเซีย 🇲🇾\nย้ำ โปรนี้ 50 ท่านแรกเท่านั้น!" };
-  await callSendAPI(sender_psid, textMsg, access_token);
+async function triggerStep1(psid, token, appUrl) {
+  // Promo text
+  await sendText(psid,
+    '🔥 HOT PROMO — First 50 Customers Only!\n\n' +
+    'Mini Soft Cake only RM 1.90 / piece! 🍰\n\n' +
+    'Available for delivery to ALL states across Malaysia 🇲🇾\n' +
+    '⚠️ This promo is for the FIRST 50 customers ONLY!',
+    token
+  );
 
-  // ภาพคนถือเค้กถุงมือดำ
-  const imageMsg = {
+  // Hero card with "View Details" button
+  const heroCard = {
     "attachment": {
       "type": "template",
       "payload": {
         "template_type": "generic",
         "elements": [
           {
-            "title": "รับสิทธิ์โปรโมชั่น 1.9 ริง!",
-            "image_url": `${appUrl}/images/hero.png`, // แนะนำให้เอารูปจริงมาใส่ในโฟลเดอร์ public/images/
-            "subtitle": "คลิกปุ่มด้านล่างเพื่อดูรายละเอียดได้เลยครับ",
+            "title": "🍰 Apple Bake — Mini Soft Cake",
+            "image_url": `${appUrl}/images/hero.png`,
+            "subtitle": "Premium handmade soft cakes — 24 unique flavours! Tap below for details.",
             "buttons": [
               {
                 "type": "postback",
-                "title": "รายละเอียด 📄",
+                "title": "📄 View Details",
                 "payload": "SOFTCAKE_DETAILS"
               }
             ]
@@ -175,77 +180,113 @@ async function triggerSoftcakeFlowStep1(sender_psid, access_token, appUrl) {
       }
     }
   };
-  await callSendAPI(sender_psid, imageMsg, access_token);
+  await callSendAPI(psid, heroCard, token);
 }
 
-async function triggerSoftcakeFlowStep2(sender_psid, access_token) {
-  // Step 2: 24 หน้าเค้ก
-  const cakeList = `รายการหน้าเค้กทั้ง 24 หน้า:\n01 - บลูเบอรี่มาสเมโล่\n02 - สตอเบอรี่มาสเมโล่\n03 - สตอเบอรี่ ส้ม\n04 - Tripple bake\n05 - ชอกโกแลต\n06 - ส้ม\n07 - สตอเบอรี่ แอน ครีม\n08 - Green  and bake\n09 - blue and cream\n10 - Thai tea with jelly\n11 - ชาไทย\n12 - green and jelly\n13 - cream bake\n14 - Cream with ถั่ว\n15 - Cream with jelly\n16 - Orange with cream\n17 - cream with strawberry\n18 - สตอเบอรี่\n19 - Choco and cream\n20 - orange fruity\n21 - rainbow\n22 - Choco banana\n23 - jelly cream with caramel\n24 - mix bake`;
-  await callSendAPI(sender_psid, { "text": cakeList }, access_token);
+// ═══════════════════════════════════════════════════════════════
+//  STEP 2 — 24 Flavours + Conditions + Storage
+// ═══════════════════════════════════════════════════════════════
 
-  const conditionText = `📍เงื่อนไขการสั่ง\n🕗 เวลาสั่งซื้อ: ทุกวัน 08:00 - 19:00 น.\n⏰ สรุปออเดอร์ก่อน 20:00 น.\n🍞 เริ่มผลิตทันทีในคืนนั้น\n\nการเก็บรักษา "เค้กหน้านิ่ม" 🍰\n❄️ อายุสินค้า 5-7 วัน (แช่เย็น 1-5 องศา นับจากวันรับ)\n‼️ ลูกค้าต้องแช่เย็นทันที ถ้าไม่แช่จะเสียภายใน 1 วัน`;
-  await callSendAPI(sender_psid, { "text": conditionText }, access_token);
+async function triggerStep2(psid, token) {
+  // 24 Flavours
+  await sendText(psid,
+    '🍰 Our 24 Soft Cake Flavours:\n\n' +
+    '01 - Blueberry Marshmallow\n' +
+    '02 - Strawberry Marshmallow\n' +
+    '03 - Strawberry Orange\n' +
+    '04 - Triple Bake\n' +
+    '05 - Chocolate\n' +
+    '06 - Orange\n' +
+    '07 - Strawberry & Cream\n' +
+    '08 - Green & Bake\n' +
+    '09 - Blue & Cream\n' +
+    '10 - Thai Tea with Jelly\n' +
+    '11 - Thai Tea\n' +
+    '12 - Green & Jelly\n' +
+    '13 - Cream Bake\n' +
+    '14 - Cream with Nuts\n' +
+    '15 - Cream with Jelly\n' +
+    '16 - Orange with Cream\n' +
+    '17 - Cream with Strawberry\n' +
+    '18 - Strawberry\n' +
+    '19 - Choco & Cream\n' +
+    '20 - Orange Fruity\n' +
+    '21 - Rainbow\n' +
+    '22 - Choco Banana\n' +
+    '23 - Jelly Cream with Caramel\n' +
+    '24 - Mix Bake',
+    token
+  );
 
-  // ส่งปุ่มสั่งซื้อ
-  const buttonMsg = {
+  // Ordering conditions
+  await sendText(psid,
+    '📍 Ordering Conditions\n\n' +
+    '🕗 Order Hours:\n' +
+    'Daily from 08:00 – 19:00\n\n' +
+    '⏰ Orders confirmed before 20:00\n' +
+    '🍞 Production starts that night for maximum freshness!\n\n' +
+    '🚚 Delivery:\n' +
+    '🏙 KL / Selangor — 1-2 days\n' +
+    '  • 1-5 boxes → RM 35 shipping\n' +
+    '  • 5+ boxes → FREE shipping\n\n' +
+    '🌆 Other States (Negeri Lain) — 1-3 days\n' +
+    '  • 1-19 boxes → Based on actual shipping cost\n' +
+    '  • 20+ boxes → FREE shipping\n\n' +
+    '⏰ Order & payment cutoff: 22:00 daily',
+    token
+  );
+
+  // Storage instructions
+  await sendText(psid,
+    '❄️ Storage Instructions — Mini Soft Cake 🍰\n\n' +
+    'Shelf life: 5–7 days\n' +
+    '(Keep refrigerated at 1–5°C from the day received)\n\n' +
+    '‼️ Soft cakes MUST be refrigerated!\n' +
+    'If not kept cold & exposed to heat → may spoil within 1 day\n\n' +
+    '📋 Tips:\n' +
+    '1️⃣ Refrigerate immediately upon receiving\n' +
+    '2️⃣ If selling without a display fridge, use a styrofoam box with cooling gel or dry ice\n' +
+    '3️⃣ After removing from fridge (below 5°C):\n' +
+    '   ⏰ Best consumed within 24 hours\n' +
+    '   😊 If re-refrigerated → can last up to 2 more days\n\n' +
+    '‼️ Without refrigeration → may spoil within 1–2 days',
+    token
+  );
+
+  // Order button
+  const orderBtn = {
     "attachment": {
       "type": "template",
       "payload": {
         "template_type": "button",
-        "text": "หากพร้อมสั่งซื้อแล้ว คลิกที่ปุ่มด้านล่างได้เลยครับ 👇",
+        "text": "Ready to order? Tap below to proceed! 👇",
         "buttons": [
           {
             "type": "postback",
-            "title": "สั่งซื้อสินค้า 🛒",
+            "title": "🛒 Order Now",
             "payload": "ORDER_MENU"
           }
         ]
       }
     }
   };
-  await callSendAPI(sender_psid, buttonMsg, access_token);
+  await callSendAPI(psid, orderBtn, token);
 }
 
-async function triggerWhatsAppFlow(sender_psid, payloadType, access_token) {
-  let templateText = "";
-  const whatsappNumber = "60111222333"; // เบอร์ WhatsApp ผู้ใช้ เปลี่ยนตรงนี้
+// ═══════════════════════════════════════════════════════════════
+//  STEP 3 — Delivery Options Carousel
+// ═══════════════════════════════════════════════════════════════
 
-  if (payloadType === "DELIVERY_PICKUP") {
-    templateText = `คัดลอกข้อความข้างล่างนี้👇🏻\nเเล้วส่งไปที่ Whatsapp Admin ของร้าน\n\nพิม order mini soft cake\n** cod at shop **\n\n1.ส้ม =\n2.ช็อกโกแลตชิพ =\n3.ฝอยทอง =\n4.ช็อกโกบานาน่า =\n5.ไวท์ช็อกชิพแอนด์ครีม =\n6.ช็อกโกแลตส้ม =\n7.ช็อกชิพแอนด์ครีม =\n8.บลูเบอร์รี่แอนด์ครีม =\n9.โอรีโอ้ชิพแอนด์ครีม =\n10.สตอเบอร์รี่แอนด์ครีม =`;
-  } else if (payloadType === "DELIVERY_KL") {
-    templateText = `คัดลอกข้อความข้างล่างนี้👇🏻\nเเล้วส่งไปที่ Whatsapp Admin ของร้าน\n\nพิม order mini soft cake\n** Delivery (Kl / Selangor) **\n\n1.ส้ม =\n2.ช็อกโกแลตชิพ =\n3.ฝอยทอง =\n4.ช็อกโกบานาน่า =\n5.ไวท์ช็อกชิพแอนด์ครีม =\n6.ช็อกโกแลตส้ม =\n7.ช็อกชิพแอนด์ครีม =\n8.บลูเบอร์รี่แอนด์ครีม =\n9.โอรีโอ้ชิพแอนด์ครีม =\n10.สตอเบอร์รี่แอนด์ครีม =`;
-  } else {
-    templateText = `คัดลอกข้อความข้างล่างนี้👇🏻\nเเล้วส่งไปที่ Whatsapp Admin ของร้าน\n\nพิม order mini soft cake\n** Delivery (Nageri Lain2) **\n\n1.ส้ม =\n2.ช็อกโกแลตชิพ =\n3.ฝอยทอง =\n4.ช็อกโกบานาน่า =\n5.ไวท์ช็อกชิพแอนด์ครีม =\n6.ช็อกโกแลตส้ม =\n7.ช็อกชิพแอนด์ครีม =\n8.บลูเบอร์รี่แอนด์ครีม =\n9.โอรีโอ้ชิพแอนด์ครีม =\n10.สตอเบอร์รี่แอนด์ครีม =`;
-  }
+async function triggerStep3(psid, token, appUrl) {
+  await sendText(psid,
+    '❤️ Pricing:\n' +
+    '• Mini Soft Cake — 1 box (42 pcs) = RM 2.90/pc\n' +
+    '• Order 10+ boxes → Special price RM 1.90/pc! 🎉\n\n' +
+    '🚚 Please select your delivery option below 👇',
+    token
+  );
 
-  await callSendAPI(sender_psid, { "text": templateText }, access_token);
-
-  // ปุ่มกดส่งเข้า WhatsApp
-  const waButton = {
-    "attachment": {
-      "type": "template",
-      "payload": {
-        "template_type": "button",
-        "text": "คัดลอกข้อความด้านบนเสร็จแล้ว คลิกปุ่มด้านล่างเพื่อไปยังแอป WhatsApp ครับ 🟢",
-        "buttons": [
-          {
-            "type": "web_url",
-            "url": `https://wa.me/${whatsappNumber}`,
-            "title": "ทัก WhatsApp 🟢"
-          }
-        ]
-      }
-    }
-  };
-  await callSendAPI(sender_psid, waButton, access_token);
-}
-
-// -------------------------------------------------------------
-// Message Templates (Carousels)
-// -------------------------------------------------------------
-
-function getMainMenuCarousel(appUrl) {
-  return {
+  const carousel = {
     "attachment": {
       "type": "template",
       "payload": {
@@ -253,77 +294,168 @@ function getMainMenuCarousel(appUrl) {
         "image_aspect_ratio": "square",
         "elements": [
           {
-            "title": "ชีสเค้ก",
-            "image_url": `${appUrl}/images/classic.png`, // Placeholder
-            "subtitle": "ชีสเค้กมาแรง สุดติ่ง",
-            "buttons": [
-              { "type": "postback", "title": "สนใจเปิดร้านชีสเค้ก", "payload": "INTERESTED_CHEESECAKE" }
-            ]
-          },
-          {
-            "title": "เค้กหน้านิ่ม Apple Bake",
-            "image_url": `${appUrl}/images/chocolate.png`, // Placeholder
-            "subtitle": "มินิซอฟเค้กราคาคุ้มค่า เริ่มต้น 1.9 ริง!",
-            "buttons": [
-              { "type": "postback", "title": "สนใจเค้กหน้านิ่ม", "payload": "INTERESTED_SOFTCAKE" }
-            ]
-          },
-          {
-            "title": "ขนมอื่นๆ",
-            "image_url": `${appUrl}/images/pandan.png`, // Placeholder
-            "subtitle": "ขนมอื่นๆ ภายในร้าน Apple Bake",
-            "buttons": [
-              { "type": "postback", "title": "สนใจสินค้าอื่นๆ", "payload": "INTERESTED_OTHERS" }
-            ]
-          },
-          {
-            "title": "รับสมัครพนักงาน",
-            "image_url": `${appUrl}/images/orange.png`, // Placeholder
-            "subtitle": "ติดต่อสมัครงานตำแหน่งต่างๆ",
-            "buttons": [
-              { "type": "postback", "title": "สนใจสมัครงาน", "payload": "JOB_APPLICATION" }
-            ]
-          }
-        ]
-      }
-    }
-  };
-}
-
-function getDeliveryOptionsCarousel(appUrl) {
-  return {
-    "attachment": {
-      "type": "template",
-      "payload": {
-        "template_type": "generic",
-        "image_aspect_ratio": "square",
-        "elements": [
-          {
-            "title": "1️⃣ รับสินค้าเองหน้าโรงงาน",
+            "title": "1️⃣ Self Pick-up at Factory",
             "image_url": `${appUrl}/images/classic.png`,
-            "subtitle": "มารับเองที่สาขา สะดวกง่าย",
+            "subtitle": "COD at shop — convenient & easy!",
             "buttons": [
-              { "type": "postback", "title": "เลือกการรับเอง", "payload": "DELIVERY_PICKUP" }
+              { "type": "postback", "title": "Select Pick-up", "payload": "DELIVERY_PICKUP" }
             ]
           },
           {
             "title": "2️⃣ Delivery (KL / Selangor)",
             "image_url": `${appUrl}/images/hero.png`,
-            "subtitle": "ส่งภายใน 1-2 วัน (5 ลังส่งฟรี)",
+            "subtitle": "1-2 days | 5+ boxes = FREE shipping",
             "buttons": [
-              { "type": "postback", "title": "เลือกส่ง KL", "payload": "DELIVERY_KL" }
+              { "type": "postback", "title": "Select KL Delivery", "payload": "DELIVERY_KL" }
             ]
           },
           {
-            "title": "3️⃣ Delivery (Nageri Lain)",
+            "title": "3️⃣ Delivery (Negeri Lain)",
             "image_url": `${appUrl}/images/pandan.png`,
-            "subtitle": "ผ่านทางขนส่งเอกชน (20 ลังส่งฟรี)",
+            "subtitle": "1-3 days | 20+ boxes = FREE shipping",
             "buttons": [
-              { "type": "postback", "title": "เลือกส่งต่างรัฐ", "payload": "DELIVERY_OTHER" }
+              { "type": "postback", "title": "Select Other States", "payload": "DELIVERY_OTHER" }
             ]
           }
         ]
       }
     }
   };
+  await callSendAPI(psid, carousel, token);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  STEP 4 — WhatsApp Order Template + Redirect
+// ═══════════════════════════════════════════════════════════════
+
+const ORDER_ITEMS =
+  '1.Orange =\n' +
+  '2.Choco Chip =\n' +
+  '3.Foi Thong =\n' +
+  '4.Choco Banana =\n' +
+  '5.White Choco Chip & Cream =\n' +
+  '6.Chocolate Orange =\n' +
+  '7.Choco Chip & Cream =\n' +
+  '8.Blueberry & Cream =\n' +
+  '9.Oreo Chip & Cream =\n' +
+  '10.Strawberry & Cream =\n' +
+  '11.Almond Caramel =\n' +
+  '12.Coffee Choco Chip =\n' +
+  '13.Double Oreo =\n' +
+  '14.Rainbow Marshmallow =\n' +
+  '15.Chocolate =\n' +
+  '16.Thai Tea Boba Brown =\n' +
+  '17.Strawberry White Choco =\n' +
+  '18.Blueberry White Choco Chip =\n' +
+  '19.Lod Chong =\n' +
+  '20.Hokkaido Milk =\n\n' +
+  'Brownie =\n' +
+  'Salted Egg Lava Pia =\n' +
+  'Éclair (Round) Hokkaido Milk =\n' +
+  'Éclair (Round) Chocolate =\n\n' +
+  'Butter Bread Hokkaido Milk =\n' +
+  'Butter Bread Chocolate =';
+
+async function triggerWhatsAppFlow(psid, payloadType, token) {
+  const whatsappNumber = '60111222333'; // ← CHANGE to real WhatsApp number
+
+  let header = '';
+  let deliveryInfo = '';
+
+  if (payloadType === 'DELIVERY_PICKUP') {
+    header = '** COD at Shop **';
+    deliveryInfo =
+      '📍 Self Pick-up at Factory\n' +
+      '• Mini Soft Cake RM 2.90/pc | 1 box = 42 pcs\n' +
+      '• Order 10+ boxes → RM 1.90/pc!';
+  } else if (payloadType === 'DELIVERY_KL') {
+    header = '** Delivery to Customer Address (KL / Selangor) **';
+    deliveryInfo =
+      '🚚 Delivery (KL / Selangor)\n' +
+      '• 1-2 days delivery\n' +
+      '• 1-5 boxes → RM 35 shipping\n' +
+      '• 5+ boxes → FREE shipping';
+  } else {
+    header = '** Delivery to Customer Address (Negeri Lain) **';
+    deliveryInfo =
+      '🚚 Delivery (Negeri Lain)\n' +
+      '• 1-3 days delivery\n' +
+      '• 1-19 boxes → Shipping based on actual cost\n' +
+      '• 20+ boxes → FREE shipping';
+  }
+
+  // Delivery info
+  await sendText(psid, deliveryInfo, token);
+
+  // Order template
+  await sendText(psid,
+    '📋 How to Order:\n\n' +
+    'Step 1️⃣ — Copy the message below 👇\n' +
+    'then send it to our WhatsApp Admin\n\n' +
+    'Order mini soft cake\n' +
+    header + '\n\n' +
+    ORDER_ITEMS + '\n\n' +
+    '─────────────────────\n\n' +
+    'Step 2️⃣ — Fill in the quantity after each item\n\n' +
+    'Step 3️⃣ — Send the completed list to Admin\n' +
+    'for order confirmation & payment\n\n' +
+    'Step 4️⃣ — Order & payment cutoff: 22:00 daily',
+    token
+  );
+
+  // WhatsApp button
+  const waButton = {
+    "attachment": {
+      "type": "template",
+      "payload": {
+        "template_type": "button",
+        "text": "✅ Copy the order form above, then tap below to open WhatsApp! 🟢",
+        "buttons": [
+          {
+            "type": "web_url",
+            "url": `https://wa.me/${whatsappNumber}`,
+            "title": "💬 Chat on WhatsApp"
+          }
+        ]
+      }
+    }
+  };
+  await callSendAPI(psid, waButton, token);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SEND API
+// ═══════════════════════════════════════════════════════════════
+
+async function sendText(psid, text, token) {
+  await callSendAPI(psid, { "text": text }, token);
+}
+
+async function callSendAPI(psid, message, token) {
+  if (!token) {
+    console.error('Missing PAGE_ACCESS_TOKEN');
+    return;
+  }
+
+  const body = {
+    "recipient": { "id": psid },
+    "message": message
+  };
+
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/v19.0/me/messages?access_token=${token}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      }
+    );
+    const data = await response.json();
+    if (data.error) {
+      console.error('Send API Error:', JSON.stringify(data.error));
+    }
+  } catch (err) {
+    console.error('Fetch error:', err.message);
+  }
 }
