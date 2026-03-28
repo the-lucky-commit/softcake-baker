@@ -11,6 +11,9 @@ export default async function handler(req, res) {
     if (!PAGE_ACCESS_TOKEN) return res.status(500).json({ error: 'Missing token' });
 
     const setupData = {
+      "get_started": {
+        "payload": "MAIN_MENU"
+      },
       "persistent_menu": [
         {
           "locale": "default",
