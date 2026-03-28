@@ -29,12 +29,17 @@ export default async function handler(req, res) {
       res.status(200).send('EVENT_RECEIVED');
 
       for (const entry of body.entry) {
-        for (const webhook_event of entry.messaging) {
+        // รองรับทั้งกรณีปกติ (messaging) และกรณี Facebook Inbox แย่งรับข้อความ (standby)
+        const events = entry.messaging || entry.standby || [];
+        
+        for (const webhook_event of events) {
+          if (!webhook_event.sender || !webhook_event.sender.id) continue;
+          
           const sender_psid = webhook_event.sender.id;
           
           if (webhook_event.postback) {
             await handlePostback(sender_psid, webhook_event.postback, PAGE_ACCESS_TOKEN, LANDING_PAGE_URL);
-          } else if (webhook_event.message) {
+          } else if (webhook_event.message && !webhook_event.message.is_echo) {
             await handleMessage(sender_psid, webhook_event.message, PAGE_ACCESS_TOKEN, LANDING_PAGE_URL);
           }
         }
