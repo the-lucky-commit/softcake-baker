@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Softcake Baker — Premium Soft-Crust Cakes | KL & Selangor</title>
-    <meta name="description" content="Premium soft-crust cakes freshly baked and delivered in KL & Selangor, Malaysia. Order online or become our partner!">
+    <title>Apple Bake — Premium Mini Soft Cakes | All Malaysia 🇲🇾</title>
+    <meta name="description" content="Apple Bake — Premium handmade mini soft cakes with 24 unique flavours. Delivery to all states across Malaysia. Order via WhatsApp!">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -16,17 +16,17 @@
     <nav class="navbar" id="navbar">
         <div class="nav-container">
             <a href="#" class="nav-logo">
-                <span class="logo-icon">🍰</span>
-                <span class="logo-text">Softcake Baker</span>
+                <span class="logo-icon">🍎</span>
+                <span class="logo-text">Apple Bake</span>
             </a>
             <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
                 <span></span><span></span><span></span>
             </button>
             <ul class="nav-links" id="navLinks">
                 <li><a href="#home">Home</a></li>
-                <li><a href="#products">Products</a></li>
-                <li><a href="#partnership">Partnership</a></li>
-                <li><a href="#about">About</a></li>
+                <li><a href="#products">Menu</a></li>
+                <li><a href="#how-to-order">How to Order</a></li>
+                <li><a href="#delivery">Delivery</a></li>
                 <li><a href="#contact">Contact</a></li>
             </ul>
         </div>
@@ -36,217 +36,177 @@
     <section class="hero" id="home">
         <div class="hero-overlay"></div>
         <div class="hero-content">
-            <div class="hero-badge">Premium Bakery • KL & Selangor</div>
-            <h1 class="hero-title">Softcake Baker</h1>
-            <p class="hero-subtitle">Premium soft-crust cakes, freshly baked with love.<br>Delivered across KL & Selangor, Malaysia.</p>
+            <div class="hero-badge">Premium Bakery • All Malaysia 🇲🇾</div>
+            <h1 class="hero-title">Apple Bake</h1>
+            <p class="hero-subtitle">Premium handmade Mini Soft Cakes with 24 unique flavours.<br>Delivery to ALL states across Malaysia.</p>
             <div class="hero-actions">
-                <a href="#products" class="btn btn-primary">View Our Cakes</a>
-                <a href="#partnership" class="btn btn-outline">Become a Partner</a>
+                <a href="#products" class="btn btn-primary">View Our Menu</a>
+                <a href="https://wa.me/60111222333" class="btn btn-outline" target="_blank">Order on WhatsApp</a>
             </div>
             <div class="hero-stats">
                 <div class="stat">
-                    <span class="stat-number">10+</span>
-                    <span class="stat-label">Flavors</span>
+                    <span class="stat-number">24</span>
+                    <span class="stat-label">Flavours</span>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat">
-                    <span class="stat-number">RM 9.90</span>
-                    <span class="stat-label">Starting Price</span>
+                    <span class="stat-number">RM 1.90</span>
+                    <span class="stat-label">From / piece</span>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat">
-                    <span class="stat-number">KL & Selangor</span>
+                    <span class="stat-number">All Malaysia</span>
                     <span class="stat-label">Delivery Area</span>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Products Section -->
-    <section class="section products-section" id="products">
+    <!-- Promo Section -->
+    <section class="section" style="padding: 0;">
         <div class="container">
-            <div class="section-header">
-                <span class="section-tag">Our Products</span>
-                <h2 class="section-title">Soft-Crust Cakes</h2>
-                <p class="section-desc">Each cake is freshly baked daily with premium ingredients. Soft, fluffy, and irresistibly delicious.</p>
-            </div>
-
-            <!-- Promo Banner -->
             <div class="promo-banner">
                 <div class="promo-icon">🔥</div>
                 <div class="promo-text">
-                    <strong>Hot Promo!</strong> Cakes from only <strong>RM 9.90</strong> each — Free delivery across KL & Selangor!
+                    <strong>HOT PROMO — First 50 Customers!</strong> Mini Soft Cake only <strong>RM 1.90/piece</strong> when you order 10+ boxes! 1 box = 42 pieces.
                 </div>
-            </div>
-
-            <div class="product-grid">
-                <div class="product-card" id="product-classic">
-                    <div class="product-image">
-                        <img src="/images/classic.png" alt="Classic Soft-Crust Cake" loading="lazy">
-                        <span class="product-badge">Best Seller</span>
-                    </div>
-                    <div class="product-info">
-                        <h3>Classic Soft-Crust</h3>
-                        <p>Our signature vanilla bean cake with a golden, buttery soft top. Light and fluffy texture.</p>
-                        <div class="product-footer">
-                            <span class="product-price">RM 9.90</span>
-                            <a href="https://wa.me/60123456789?text=Hi!%20I'm%20interested%20in%20Classic%20Soft-Crust%20Cake" class="btn btn-sm" target="_blank">Order Now</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="product-card" id="product-chocolate">
-                    <div class="product-image">
-                        <img src="/images/chocolate.png" alt="Chocolate Soft-Crust Cake" loading="lazy">
-                        <span class="product-badge popular">Popular</span>
-                    </div>
-                    <div class="product-info">
-                        <h3>Dark Chocolate</h3>
-                        <p>Rich, premium dark chocolate with a melt-in-your-mouth soft crust. For true chocolate lovers.</p>
-                        <div class="product-footer">
-                            <span class="product-price">RM 9.90</span>
-                            <a href="https://wa.me/60123456789?text=Hi!%20I'm%20interested%20in%20Chocolate%20Soft-Crust%20Cake" class="btn btn-sm" target="_blank">Order Now</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="product-card" id="product-pandan">
-                    <div class="product-image">
-                        <img src="/images/pandan.png" alt="Pandan Soft-Crust Cake" loading="lazy">
-                        <span class="product-badge new">New</span>
-                    </div>
-                    <div class="product-info">
-                        <h3>Pandan Gold</h3>
-                        <p>Aromatic pandan-infused cake with a naturally green hue. A Southeast Asian favorite.</p>
-                        <div class="product-footer">
-                            <span class="product-price">RM 9.90</span>
-                            <a href="https://wa.me/60123456789?text=Hi!%20I'm%20interested%20in%20Pandan%20Soft-Crust%20Cake" class="btn btn-sm" target="_blank">Order Now</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="product-card" id="product-orange">
-                    <div class="product-image">
-                        <img src="/images/orange.png" alt="Orange Soft-Crust Cake" loading="lazy">
-                    </div>
-                    <div class="product-info">
-                        <h3>Orange Zest</h3>
-                        <p>Refreshing citrus-infused cake with real orange essence. Light, tangy, and perfectly sweet.</p>
-                        <div class="product-footer">
-                            <span class="product-price">RM 9.90</span>
-                            <a href="https://wa.me/60123456789?text=Hi!%20I'm%20interested%20in%20Orange%20Soft-Crust%20Cake" class="btn btn-sm" target="_blank">Order Now</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="products-note">
-                <p>📦 <strong>Minimum order:</strong> 10 pieces &nbsp;|&nbsp; 🚚 <strong>Free delivery</strong> in KL & Selangor &nbsp;|&nbsp; 🎨 <strong>Custom flavors</strong> available on request</p>
             </div>
         </div>
     </section>
 
-    <!-- Partnership Section -->
-    <section class="section partnership-section" id="partnership">
+    <!-- Products / Menu Section -->
+    <section class="section products-section" id="products">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Our Menu</span>
+                <h2 class="section-title">Mini Soft Cake Flavours</h2>
+                <p class="section-desc">Each cake is freshly baked nightly with premium ingredients. Soft, fluffy, and irresistibly delicious. 1 box = 42 pieces.</p>
+            </div>
+
+            <!-- Soft Cake Flavours Grid -->
+            <div class="flavour-grid">
+                <div class="flavour-card"><span class="flavour-num">01</span><span class="flavour-name">Orange</span></div>
+                <div class="flavour-card"><span class="flavour-num">02</span><span class="flavour-name">Choco Chip</span></div>
+                <div class="flavour-card"><span class="flavour-num">03</span><span class="flavour-name">Foi Thong</span></div>
+                <div class="flavour-card"><span class="flavour-num">04</span><span class="flavour-name">Choco Banana</span></div>
+                <div class="flavour-card"><span class="flavour-num">05</span><span class="flavour-name">White Choco Chip & Cream</span></div>
+                <div class="flavour-card"><span class="flavour-num">06</span><span class="flavour-name">Chocolate Orange</span></div>
+                <div class="flavour-card"><span class="flavour-num">07</span><span class="flavour-name">Choco Chip & Cream</span></div>
+                <div class="flavour-card"><span class="flavour-num">08</span><span class="flavour-name">Blueberry & Cream</span></div>
+                <div class="flavour-card"><span class="flavour-num">09</span><span class="flavour-name">Oreo Chip & Cream</span></div>
+                <div class="flavour-card"><span class="flavour-num">10</span><span class="flavour-name">Strawberry & Cream</span></div>
+                <div class="flavour-card"><span class="flavour-num">11</span><span class="flavour-name">Almond Caramel</span></div>
+                <div class="flavour-card"><span class="flavour-num">12</span><span class="flavour-name">Coffee Choco Chip</span></div>
+                <div class="flavour-card"><span class="flavour-num">13</span><span class="flavour-name">Double Oreo</span></div>
+                <div class="flavour-card"><span class="flavour-num">14</span><span class="flavour-name">Rainbow Marshmallow</span></div>
+                <div class="flavour-card"><span class="flavour-num">15</span><span class="flavour-name">Chocolate</span></div>
+                <div class="flavour-card"><span class="flavour-num">16</span><span class="flavour-name">Thai Tea Boba Brown</span></div>
+                <div class="flavour-card"><span class="flavour-num">17</span><span class="flavour-name">Strawberry White Choco</span></div>
+                <div class="flavour-card"><span class="flavour-num">18</span><span class="flavour-name">Blueberry White Choco Chip</span></div>
+                <div class="flavour-card"><span class="flavour-num">19</span><span class="flavour-name">Lod Chong</span></div>
+                <div class="flavour-card"><span class="flavour-num">20</span><span class="flavour-name">Hokkaido Milk</span></div>
+            </div>
+
+            <!-- Other Products -->
+            <div class="section-header" style="margin-top: 3rem;">
+                <h2 class="section-title" style="font-size: 1.6rem;">Also Available</h2>
+            </div>
+            <div class="flavour-grid extras">
+                <div class="flavour-card extra"><span class="flavour-name">🍫 Brownie</span></div>
+                <div class="flavour-card extra"><span class="flavour-name">🥟 Salted Egg Lava Pia</span></div>
+                <div class="flavour-card extra"><span class="flavour-name">🍩 Éclair (Round) — Hokkaido Milk</span></div>
+                <div class="flavour-card extra"><span class="flavour-name">🍩 Éclair (Round) — Chocolate</span></div>
+                <div class="flavour-card extra"><span class="flavour-name">🍞 Butter Bread — Hokkaido Milk</span></div>
+                <div class="flavour-card extra"><span class="flavour-name">🍞 Butter Bread — Chocolate</span></div>
+            </div>
+
+            <div class="products-note">
+                <p>📦 <strong>Pricing:</strong> RM 2.90/pc (1 box = 42 pcs) &nbsp;|&nbsp; 🎉 <strong>10+ boxes:</strong> RM 1.90/pc &nbsp;|&nbsp; 🇲🇾 <strong>Delivery:</strong> All Malaysia</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How to Order Section -->
+    <section class="section about-section" id="how-to-order">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Easy Ordering</span>
+                <h2 class="section-title">How to Order</h2>
+            </div>
+            <div class="about-grid">
+                <div class="about-card">
+                    <div class="about-icon">1️⃣</div>
+                    <h3>Copy Order Form</h3>
+                    <p>Copy the order form from our WhatsApp or Messenger bot. Fill in the quantity for each flavour you want.</p>
+                </div>
+                <div class="about-card">
+                    <div class="about-icon">2️⃣</div>
+                    <h3>Send to Admin</h3>
+                    <p>Send the completed order form to our WhatsApp Admin for confirmation and total payment calculation.</p>
+                </div>
+                <div class="about-card">
+                    <div class="about-icon">3️⃣</div>
+                    <h3>Confirm & Pay</h3>
+                    <p>Confirm your order and complete payment. Order & payment cutoff is 22:00 daily. Production starts that night!</p>
+                </div>
+                <div class="about-card">
+                    <div class="about-icon">4️⃣</div>
+                    <h3>Receive Fresh Cakes</h3>
+                    <p>Pick up at our factory or receive via delivery. KL/Selangor: 1-2 days. Other states: 1-3 days.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Delivery Section -->
+    <section class="section partnership-section" id="delivery">
         <div class="container">
             <div class="partnership-layout">
                 <div class="partnership-content">
-                    <span class="section-tag">Join Us</span>
-                    <h2 class="section-title">Become Our Partner</h2>
-                    <p class="section-desc">We're actively expanding across <strong>KL & Selangor</strong>. Join our growing network of partners and resellers.</p>
+                    <span class="section-tag">Delivery Options</span>
+                    <h2 class="section-title">We Deliver Nationwide 🇲🇾</h2>
+                    <p class="section-desc">Choose the delivery option that works best for you. We serve <strong>all states across Malaysia</strong>!</p>
 
                     <div class="partner-types">
                         <div class="partner-type">
-                            <div class="partner-icon">🏪</div>
+                            <div class="partner-icon">🏭</div>
                             <div>
-                                <h4>Resellers</h4>
-                                <p>Sell our soft-crust cakes in your area</p>
+                                <h4>Self Pick-up (COD at Factory)</h4>
+                                <p>Pick up directly at our factory — convenient & easy!</p>
                             </div>
                         </div>
                         <div class="partner-type">
-                            <div class="partner-icon">☕</div>
+                            <div class="partner-icon">🏙️</div>
                             <div>
-                                <h4>Cafés & Restaurants</h4>
-                                <p>Add our cakes to your menu</p>
+                                <h4>KL / Selangor Delivery</h4>
+                                <p>1-2 days delivery<br>• 1-5 boxes → RM 35 shipping<br>• 5+ boxes → <strong>FREE shipping!</strong></p>
                             </div>
                         </div>
                         <div class="partner-type">
-                            <div class="partner-icon">🎁</div>
+                            <div class="partner-icon">🌏</div>
                             <div>
-                                <h4>Corporate Gifting</h4>
-                                <p>Premium cake boxes for corporate events</p>
-                            </div>
-                        </div>
-                        <div class="partner-type">
-                            <div class="partner-icon">🎉</div>
-                            <div>
-                                <h4>Event & Catering</h4>
-                                <p>Large-scale orders for events</p>
+                                <h4>Other States (Negeri Lain)</h4>
+                                <p>1-3 days delivery<br>• 1-19 boxes → Based on actual shipping cost<br>• 20+ boxes → <strong>FREE shipping!</strong></p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="partnership-form-card">
-                    <h3>Apply for Partnership</h3>
-                    <p>Fill in your details and we'll contact you within 24 hours.</p>
-                    <form id="partnerForm" class="partner-form">
-                        <div class="form-group">
-                            <label for="businessName">Business Name</label>
-                            <input type="text" id="businessName" placeholder="Your business name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="location">Location in KL/Selangor</label>
-                            <input type="text" id="location" placeholder="e.g. Petaling Jaya, Shah Alam" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="partnerType">Partnership Type</label>
-                            <select id="partnerType" required>
-                                <option value="">Select type...</option>
-                                <option value="reseller">Reseller</option>
-                                <option value="cafe">Café / Restaurant</option>
-                                <option value="corporate">Corporate Gifting</option>
-                                <option value="event">Event & Catering</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="whatsapp">WhatsApp Number</label>
-                            <input type="tel" id="whatsapp" placeholder="+60 12-345 6789" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-full">Submit Application</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- About Section -->
-    <section class="section about-section" id="about">
-        <div class="container">
-            <div class="section-header">
-                <span class="section-tag">About Us</span>
-                <h2 class="section-title">Why Softcake Baker?</h2>
-            </div>
-            <div class="about-grid">
-                <div class="about-card">
-                    <div class="about-icon">🏭</div>
-                    <h3>Factory Fresh</h3>
-                    <p>All cakes are baked fresh daily in our certified bakery facility with strict quality control.</p>
-                </div>
-                <div class="about-card">
-                    <div class="about-icon">🕌</div>
-                    <h3>Halal Certified</h3>
-                    <p>Our products meet full Halal certification standards, ensuring quality for all customers.</p>
-                </div>
-                <div class="about-card">
-                    <div class="about-icon">📦</div>
-                    <h3>Bulk Ready</h3>
-                    <p>Production capacity to handle large orders — from 10 pieces to thousands for wholesale.</p>
-                </div>
-                <div class="about-card">
-                    <div class="about-icon">🌏</div>
-                    <h3>Export Ready</h3>
-                    <p>Fully documented and licensed for export. Currently expanding across Malaysia and Southeast Asia.</p>
+                    <h3>❄️ Storage Instructions</h3>
+                    <p style="text-align:left; line-height:1.8; font-size: 0.95rem;">
+                        <strong>Shelf life:</strong> 5–7 days<br>
+                        Keep refrigerated at 1–5°C<br><br>
+                        ‼️ Soft cakes <strong>MUST</strong> be refrigerated!<br>
+                        Without refrigeration → may spoil within 1 day<br><br>
+                        📋 <strong>Tips:</strong><br>
+                        1️⃣ Refrigerate immediately upon receiving<br>
+                        2️⃣ If selling without a fridge, use styrofoam box with cooling gel or dry ice<br>
+                        3️⃣ After removing from fridge → best consumed within 24 hours<br>
+                        4️⃣ If re-refrigerated → can last up to 2 more days<br><br>
+                        ⏰ <strong>Order hours:</strong> 08:00 – 19:00 daily<br>
+                        ⏰ <strong>Order cutoff:</strong> 22:00 daily
+                    </p>
                 </div>
             </div>
         </div>
@@ -266,28 +226,28 @@
                             <div class="contact-icon">📱</div>
                             <div>
                                 <h4>WhatsApp</h4>
-                                <a href="https://wa.me/60123456789">+60 12-345 6789</a>
+                                <a href="https://wa.me/60111222333">Chat with us on WhatsApp</a>
                             </div>
                         </div>
                         <div class="contact-item">
                             <div class="contact-icon">💬</div>
                             <div>
                                 <h4>Facebook Messenger</h4>
-                                <a href="https://m.me/softcakebaker">Softcake Baker</a>
-                            </div>
-                        </div>
-                        <div class="contact-item">
-                            <div class="contact-icon">📧</div>
-                            <div>
-                                <h4>Email</h4>
-                                <a href="mailto:hello@softcakebaker.com">hello@softcakebaker.com</a>
+                                <a href="https://m.me/applebakee">Apple Bake</a>
                             </div>
                         </div>
                         <div class="contact-item">
                             <div class="contact-icon">📍</div>
                             <div>
                                 <h4>Location</h4>
-                                <p>KL & Selangor, Malaysia</p>
+                                <p>Klang, Selangor, Malaysia</p>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <div class="contact-icon">🕐</div>
+                            <div>
+                                <h4>Order Hours</h4>
+                                <p>Daily 08:00 – 19:00 | Cutoff: 22:00</p>
                             </div>
                         </div>
                     </div>
@@ -297,15 +257,15 @@
                         <div class="cta-emoji">🍰</div>
                         <h3>Ready to Order?</h3>
                         <p>Chat with us on WhatsApp for quick orders and pricing!</p>
-                        <a href="https://wa.me/60123456789?text=Hi!%20I'd%20like%20to%20order%20soft-crust%20cakes" class="btn btn-primary btn-full" target="_blank">
-                            Chat on WhatsApp
+                        <a href="https://wa.me/60111222333?text=Hi!%20I'd%20like%20to%20order%20mini%20soft%20cakes" class="btn btn-primary btn-full" target="_blank">
+                            Order on WhatsApp
                         </a>
                     </div>
                     <div class="cta-card">
-                        <div class="cta-emoji">🤝</div>
-                        <h3>Want to Partner?</h3>
-                        <p>Message us on Facebook to discuss partnership opportunities.</p>
-                        <a href="https://m.me/softcakebaker" class="btn btn-outline btn-full" target="_blank">
+                        <div class="cta-emoji">💬</div>
+                        <h3>Chat with Our Bot</h3>
+                        <p>Use our automated Messenger bot for instant menu & ordering!</p>
+                        <a href="https://m.me/applebakee" class="btn btn-outline btn-full" target="_blank">
                             Message on Facebook
                         </a>
                     </div>
@@ -319,24 +279,24 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-brand">
-                    <span class="logo-icon">🍰</span>
-                    <span class="logo-text">Softcake Baker</span>
+                    <span class="logo-icon">🍎</span>
+                    <span class="logo-text">Apple Bake</span>
                 </div>
-                <p class="footer-desc">Premium soft-crust cakes, freshly baked and delivered in KL & Selangor, Malaysia.</p>
+                <p class="footer-desc">Premium handmade mini soft cakes — 24 unique flavours. Delivery to all states across Malaysia 🇲🇾</p>
                 <div class="footer-links">
                     <a href="#home">Home</a>
-                    <a href="#products">Products</a>
-                    <a href="#partnership">Partnership</a>
-                    <a href="#about">About</a>
+                    <a href="#products">Menu</a>
+                    <a href="#how-to-order">How to Order</a>
+                    <a href="#delivery">Delivery</a>
                     <a href="#contact">Contact</a>
                 </div>
-                <p class="footer-copy">&copy; 2026 Softcake Baker. All rights reserved.</p>
+                <p class="footer-copy">&copy; 2026 Apple Bake. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
     <!-- WhatsApp Float Button -->
-    <a href="https://wa.me/60123456789?text=Hi!%20I'm%20interested%20in%20Softcake%20Baker%20products" class="whatsapp-float" target="_blank" aria-label="Chat on WhatsApp">
+    <a href="https://wa.me/60111222333?text=Hi!%20I'm%20interested%20in%20Apple%20Bake%20mini%20soft%20cakes" class="whatsapp-float" target="_blank" aria-label="Chat on WhatsApp">
         <svg viewBox="0 0 24 24" width="28" height="28" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
     </a>
 
